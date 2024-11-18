@@ -15,30 +15,34 @@ class MainActivity : AppCompatActivity() {
     private val viewModel: BooksViewModel by viewModels { BooksViewModelFactory(BookRepository()) }
     private val bookAdapter = BookAdapter()
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
+override fun onCreate(savedInstanceState: Bundle?) {
+    super.onCreate(savedInstanceState)
 
-        binding = ActivityMainBinding.inflate(layoutInflater)
-        setContentView(binding.root)
+    binding = ActivityMainBinding.inflate(layoutInflater)
+    setContentView(binding.root)
 
-        binding.recyclerView.layoutManager = GridLayoutManager(this, 2)
-        binding.recyclerView.adapter = bookAdapter
 
-        viewModel.books.observe(this, Observer { response ->
-            val books = response?.items?.takeIf { it.isNotEmpty() }
-            bookAdapter.submitList(books ?: emptyList())
-        })
+    val totalHeight = resources.displayMetrics.heightPixels
+    val itemHeight = resources.getDimensionPixelSize(R.dimen.item_height)
+    val rows = 2
+    val spanCount = (totalHeight / itemHeight / rows).coerceAtLeast(2)
 
-        binding.searchEditText.addTextChangedListener(object : TextWatcher {
-            override fun beforeTextChanged(charSequence: CharSequence?, start: Int, count: Int, after: Int) {}
+    binding.recyclerView.layoutManager = GridLayoutManager(this, spanCount)
+    binding.recyclerView.adapter = bookAdapter
 
-            override fun onTextChanged(charSequence: CharSequence?, start: Int, before: Int, count: Int) {}
+    viewModel.books.observe(this, Observer { response ->
+        val books = response?.items?.takeIf { it.isNotEmpty() }
+        bookAdapter.submitList(books ?: emptyList())
+    })
 
-            override fun afterTextChanged(editable: Editable?) {
-                editable?.let {
-                    viewModel.searchBooks(it.toString())
-                }
+    binding.searchEditText.addTextChangedListener(object : TextWatcher {
+        override fun beforeTextChanged(charSequence: CharSequence?, start: Int, count: Int, after: Int) {}
+        override fun onTextChanged(charSequence: CharSequence?, start: Int, before: Int, count: Int) {}
+        override fun afterTextChanged(editable: Editable?) {
+            editable?.let {
+                viewModel.searchBooks(it.toString())
             }
-        })
-    }
+        }
+    })
+}
 }
